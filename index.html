@@ -486,26 +486,24 @@ function getSyncDate() {
 }
 
 // ── PARSING ──────────────────────────────────────────────────────
-// Parses text in format: "Sector: Route NAME: Action (Date / Person)"
-// Also handles the climbkalymnos.com maintenance log format
 function parseReboltText(text) {
   const routes = [];
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
   for (const line of lines) {
-    // A more flexible match that looks for a sector/name/action structure
-    // but isn't as strict about the word "Route" or specific colon placement
-    if (line.toLowerCase().includes('rebolted') || line.toLowerCase().includes('anchor')) {
+    const lowerLine = line.toLowerCase();
+    // Look for entries containing rebolt keywords
+    if (lowerLine.includes('rebolted') || lowerLine.includes('anchor') || lowerLine.includes('lower off') || lowerLine.includes('biner')) {
       const parts = line.split(':').map(p => p.trim());
       
       if (parts.length >= 2) {
         const sector = parts[0];
         const routeInfo = parts[1];
-        const action = parts[2] || "Maintained";
+        const action = parts[2] || routeInfo;
         
         routes.push({
           sector: cleanSector(sector),
-          name: routeInfo.replace(/Route\s+/i, ''),
+          name: routeInfo.replace(/Route\s+/i, '').split('(')[0].trim(),
           action: action,
           date: extractYear(line),
           person: "",
@@ -536,7 +534,6 @@ function extractYear(dateStr) {
 }
 
 function cleanSector(sector) {
-  // Remove parenthetical sub-names and clean up
   return sector.replace(/\s*\([^)]+\)\s*$/, '').trim();
 }
 
@@ -548,8 +545,6 @@ async function syncData() {
   label.textContent = 'SYNCING…';
 
   try {
-    // Fetch from climbkalymnos.com maintenance log (CORS-friendly approach via a proxy or direct)
-    // We try fetching the page and parsing it
     const routes = await fetchReboltData();
     if (routes.length === 0) throw new Error('No routes parsed');
 
@@ -568,7 +563,6 @@ async function syncData() {
 }
 
 async function fetchReboltData() {
-  // Try the climbkalymnos.com rebolt log via a CORS proxy
   const urls = [
     'https://api.allorigins.win/get?url=' + encodeURIComponent('https://climbkalymnos.com/'),
     'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/')
@@ -579,30 +573,34 @@ async function fetchReboltData() {
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) continue;
+      
       const data = await res.json().catch(() => null);
-      html = data?.contents || await res.text();
-      if (html.length > 1000) break;
-    } catch { continue; }
+      html = data?.contents || (typeof data === 'string' ? data : '');
+      
+      if (html && html.length > 1000) break;
+    } catch (e) { 
+      console.warn('Sync attempt failed for ' + url, e);
+      continue; 
+    }
   }
 
   if (!html) throw new Error('Could not reach source. Check your WiFi connection.');
 
-  // Extract the rebolt log text from the HTML
   const text = extractTextFromHTML(html);
   const routes = parseReboltText(text);
 
-  // Also try the dedicated rebolt log page
   let extraRoutes = [];
   try {
     const res2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://reboltkalymnos.org/kalymnos'), { signal: AbortSignal.timeout(10000) });
     if (res2.ok) {
       const data2 = await res2.json().catch(() => null);
-      const html2 = data2?.contents || '';
-      if (html2) extraRoutes = parseReboltText(extractTextFromHTML(html2));
+      const h2 = data2?.contents || '';
+      if (h2) extraRoutes = parseReboltText(extractTextFromHTML(h2));
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Backup sync failed', e);
+  }
 
-  // Merge, deduplicate by sector+name
   const seen = new Set(routes.map(r => r.sector + '|' + r.name));
   for (const r of extraRoutes) {
     const key = r.sector + '|' + r.name;
@@ -613,7 +611,6 @@ async function fetchReboltData() {
 }
 
 function extractTextFromHTML(html) {
-  // Strip tags, decode entities, return meaningful lines
   return html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -649,7 +646,6 @@ function render() {
     return;
   }
 
-  // Filter routes
   let filtered = allRoutes.filter(r => {
     if (currentFilter === 'all') return true;
     if (currentFilter === 'full') return r.type === 'full';
@@ -669,7 +665,6 @@ function render() {
     );
   }
 
-  // Update stats
   statsBar.style.display = 'flex';
   document.getElementById('statRoutes').textContent = filtered.length;
   const sectors = new Set(filtered.map(r => r.sector));
@@ -681,7 +676,6 @@ function render() {
     return;
   }
 
-  // Group by sector
   const grouped = {};
   for (const r of filtered) {
     if (!grouped[r.sector]) grouped[r.sector] = [];
@@ -738,7 +732,6 @@ function highlight(str, q) {
   return str.replace(re, '<mark>$1</mark>');
 }
 
-// ── INTERACTIONS ─────────────────────────────────────────────────
 function toggleSector(el) {
   el.classList.toggle('open');
 }
@@ -791,7 +784,6 @@ function toast(msg, type = '') {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// ── BOOT ─────────────────────────────────────────────────────────
 (function init() {
   const saved = loadData();
   if (saved && saved.length) {
@@ -800,7 +792,6 @@ function toast(msg, type = '') {
     updateSyncStatus();
   }
 
-  // Register service worker for offline caching
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
