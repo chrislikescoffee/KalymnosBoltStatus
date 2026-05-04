@@ -541,12 +541,18 @@ function cleanSector(sector) {
 async function syncData() {
   const btn = document.getElementById('syncBtn');
   const label = document.getElementById('syncLabel');
+  const statusEl = document.getElementById('syncStatus');
+  
   btn.classList.add('syncing');
   label.textContent = 'SYNCING…';
+  statusEl.textContent = 'Connecting to proxies...';
 
   try {
-    const routes = await fetchReboltData();
-    if (routes.length === 0) throw new Error('No routes parsed');
+    const routes = await fetchReboltData((msg) => {
+      statusEl.textContent = msg; // Update UI with current step
+    });
+    
+    if (routes.length === 0) throw new Error('Parsing failed: No valid route data found.');
 
     saveData(routes);
     allRoutes = routes;
@@ -554,59 +560,55 @@ async function syncData() {
     updateSyncStatus();
     toast('✓ Synced ' + routes.length + ' routes', 'success');
   } catch (err) {
+    statusEl.textContent = 'Error: ' + err.message;
+    statusEl.className = 'sync-status stale';
     toast('Sync failed: ' + err.message, 'error');
-    console.error(err);
+    console.error('Detailed Sync Error:', err);
   } finally {
     btn.classList.remove('syncing');
     label.textContent = 'SYNC';
   }
 }
 
-async function fetchReboltData() {
+async function fetchReboltData(onProgress) {
   const urls = [
-    'https://api.allorigins.win/get?url=' + encodeURIComponent('https://climbkalymnos.com/'),
-    'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/')
+    { name: 'AllOrigins', url: 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://climbkalymnos.com/') },
+    { name: 'CorsProxy.io', url: 'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/') }
   ];
 
   let html = '';
-  for (const url of urls) {
+  let lastError = '';
+
+  for (const item of urls) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-      if (!res.ok) continue;
+      if (onProgress) onProgress(`Trying ${item.name}...`);
+      
+      const res = await fetch(item.url, { signal: AbortSignal.timeout(15000) });
+      
+      if (!res.ok) {
+        lastError = `${item.name} returned status ${res.status}`;
+        continue;
+      }
       
       const data = await res.json().catch(() => null);
       html = data?.contents || (typeof data === 'string' ? data : '');
       
-      if (html && html.length > 1000) break;
+      if (html && html.length > 1000) {
+        if (onProgress) onProgress('Data received, parsing...');
+        break;
+      } else {
+        lastError = `${item.name} returned empty content.`;
+      }
     } catch (e) { 
-      console.warn('Sync attempt failed for ' + url, e);
+      lastError = `${item.name} connection error: ${e.message}`;
       continue; 
     }
   }
 
-  if (!html) throw new Error('Could not reach source. Check your WiFi connection.');
+  if (!html) throw new Error(lastError || 'All proxies failed. Check connection.');
 
   const text = extractTextFromHTML(html);
   const routes = parseReboltText(text);
-
-  let extraRoutes = [];
-  try {
-    const res2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://reboltkalymnos.org/kalymnos'), { signal: AbortSignal.timeout(10000) });
-    if (res2.ok) {
-      const data2 = await res2.json().catch(() => null);
-      const h2 = data2?.contents || '';
-      if (h2) extraRoutes = parseReboltText(extractTextFromHTML(h2));
-    }
-  } catch (e) {
-    console.warn('Backup sync failed', e);
-  }
-
-  const seen = new Set(routes.map(r => r.sector + '|' + r.name));
-  for (const r of extraRoutes) {
-    const key = r.sector + '|' + r.name;
-    if (!seen.has(key)) { routes.push(r); seen.add(key); }
-  }
-
   return routes;
 }
 
