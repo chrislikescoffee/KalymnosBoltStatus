@@ -493,33 +493,28 @@ function parseReboltText(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
   for (const line of lines) {
-    // Pattern: "Sector (subname): Route NAME: description (date / person)"
-    const match = line.match(/^(.+?):\s*Route\s+(.+?):\s*(.+?)(?:\s*\((.+?)\))?$/i);
-    if (!match) continue;
-
-    const [, sector, name, action, datePerson] = match;
-
-    let date = '';
-    let person = '';
-    if (datePerson) {
-      const parts = datePerson.split('/');
-      date = parts[0]?.trim() || '';
-      person = parts.slice(1).join('/').trim();
+    // A more flexible match that looks for a sector/name/action structure
+    // but isn't as strict about the word "Route" or specific colon placement
+    if (line.toLowerCase().includes('rebolted') || line.toLowerCase().includes('anchor')) {
+      const parts = line.split(':').map(p => p.trim());
+      
+      if (parts.length >= 2) {
+        const sector = parts[0];
+        const routeInfo = parts[1];
+        const action = parts[2] || "Maintained";
+        
+        routes.push({
+          sector: cleanSector(sector),
+          name: routeInfo.replace(/Route\s+/i, ''),
+          action: action,
+          date: extractYear(line),
+          person: "",
+          year: extractYear(line),
+          type: classifyAction(action),
+          raw: line
+        });
+      }
     }
-
-    const type = classifyAction(action);
-    const year = extractYear(date);
-
-    routes.push({
-      sector: cleanSector(sector),
-      name: name.trim(),
-      action: action.trim(),
-      date,
-      person,
-      year,
-      type,
-      raw: line
-    });
   }
   return routes;
 }
