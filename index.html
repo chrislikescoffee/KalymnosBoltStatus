@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rebolt Kaly">
+  <meta name="theme-color" content="#0a0f0a">
+  <title>Rebolt Kalymnos</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0f0a;
+      --surface: #111811;
+      --surface2: #182018;
+      --border: #2a3d2a;
+      --accent: #7eff6a;
+      --accent2: #ff9f1c;
+      --accent3: #4ecdc4;
+      --text: #e8ede8;
+      --text-dim: #7a9a7a;
+      --text-muted: #4a6a4a;
+      --danger: #ff4d4d;
+      --warning: #ff9f1c;
+      --good: #7eff6a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 15, 10, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .sync-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .sync-btn.syncing { opacity: 0.6; pointer-events: none; }
+
+    .sync-icon { font-size: 14px; display: inline-block; }
+    .sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── SEARCH ── */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      padding: 9px 36px 9px 12px;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px;
+      display: none;
+    }
+
+    .search-clear.visible { display: block; }
+
+    /* ── FILTERS ── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filters::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .filter-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* ── SECTOR GROUPS ── */
+    .content {
+      padding: 0 0 80px;
+    }
+
+    .sector-group {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      cursor: pointer;
+      background: var(--surface);
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    .sector-header:hover { background: var(--surface2); }
+
+    .sector-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent3);
+    }
+
+    .sector-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sector-count {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .chevron {
+      color: var(--text-muted);
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+
+    .sector-group.open .chevron { transform: rotate(180deg); }
+
+    .route-list {
+      display: none;
+    }
+
+    .sector-group.open .route-list { display: block; }
+
+    /* ── ROUTE CARDS ── */
+    .route-card {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+      align-items: start;
+      transition: background 0.1s;
+    }
+
+    .route-card:hover { background: var(--surface); }
+
+    .route-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      grid-column: 1;
+    }
+
+    .route-action {
+      font-size: 11px;
+      color: var(--text-dim);
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .route-person {
+      font-size: 10px;
+      color: var(--text-muted);
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .route-badge {
+      grid-column: 2;
+      grid-row: 1 / 4;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .badge-year {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent2);
+    }
+
+    .badge-type {
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+    }
+
+    .badge-type.full    { background: #7eff6a22; color: var(--good); border: 1px solid #7eff6a44; }
+    .badge-type.partial { background: #ff9f1c22; color: var(--warning); border: 1px solid #ff9f1c44; }
+    .badge-type.anchor  { background: #4ecdc422; color: var(--accent3); border: 1px solid #4ecdc444; }
+    .badge-type.other   { background: #ffffff11; color: var(--text-dim); border: 1px solid #ffffff22; }
+
+    /* ── EMPTY / OFFLINE STATES ── */
+    .state-panel {
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .state-icon { font-size: 48px; margin-bottom: 16px; }
+
+    .state-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .state-body {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 1px;
+      padding: 10px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    /* ── SYNC STATUS ── */
+    .sync-status {
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 6px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sync-status.fresh { color: var(--good); }
+    .sync-status.stale { color: var(--warning); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      z-index: 999;
+      transition: transform 0.3s;
+      white-space: nowrap;
+      max-width: 90vw;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: var(--accent); color: var(--accent); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* ── NO RESULTS ── */
+    .no-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* ── HIGHLIGHT ── */
+    mark {
+      background: #7eff6a33;
+      color: var(--accent);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">REBOLT <span>KALY</span></div>
+    <button class="sync-btn" id="syncBtn" onclick="syncData()">
+      <span class="sync-icon">⟳</span>
+      <span id="syncLabel">SYNC</span>
+    </button>
+  </div>
+  <div class="search-wrap">
+    <input class="search-input" id="searchInput" type="search" placeholder="Search route or sector…" oninput="onSearch(this.value)" autocomplete="off" spellcheck="false">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+</header>
+
+<div class="filters" id="filterBar">
+  <div class="filter-chip active" data-filter="all" onclick="setFilter('all', this)">ALL</div>
+  <div class="filter-chip" data-filter="full" onclick="setFilter('full', this)">FULLY REBOLTED</div>
+  <div class="filter-chip" data-filter="partial" onclick="setFilter('partial', this)">PARTIAL</div>
+  <div class="filter-chip" data-filter="anchor" onclick="setFilter('anchor', this)">ANCHOR ONLY</div>
+  <div class="filter-chip" data-filter="2025" onclick="setFilter('2025', this)">2025</div>
+  <div class="filter-chip" data-filter="2024" onclick="setFilter('2024', this)">2024</div>
+  <div class="filter-chip" data-filter="2023" onclick="setFilter('2023', this)">2023</div>
+</div>
+
+<div class="sync-status" id="syncStatus">No data yet — tap SYNC on WiFi to download</div>
+
+<div class="stats-bar" id="statsBar" style="display:none">
+  <div class="stat">
+    <div class="stat-num" id="statRoutes">0</div>
+    <div class="stat-label">Routes</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="statSectors">0</div>
+    <div class="stat-label">Sectors</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="statFull">0</div>
+    <div class="stat-label">Full Rebolt</div>
+  </div>
+</div>
+
+<div class="content" id="content">
+  <div class="state-panel">
+    <div class="state-icon">🧗</div>
+    <div class="state-title">Ready for Kalymnos?</div>
+    <div class="state-body">
+      Connect to WiFi, tap SYNC to download<br>
+      the full rebolt database. Then go climb —<br>
+      no data needed on the island.
+    </div>
+    <button class="primary-btn" onclick="syncData()">SYNC NOW</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA MANAGEMENT ──────────────────────────────────────────────
+const STORAGE_KEY = 'rebolt_data_v2';
+const SYNC_DATE_KEY = 'rebolt_sync_date';
+
+let allRoutes = [];
+let currentFilter = 'all';
+let currentSearch = '';
+
+function saveData(routes) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+  localStorage.setItem(SYNC_DATE_KEY, new Date().toISOString());
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function getSyncDate() {
+  const d = localStorage.getItem(SYNC_DATE_KEY);
+  return d ? new Date(d) : null;
+}
+
+// ── PARSING ──────────────────────────────────────────────────────
+// Parses text in format: "Sector: Route NAME: Action (Date / Person)"
+// Also handles the climbkalymnos.com maintenance log format
+function parseReboltText(text) {
+  const routes = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  for (const line of lines) {
+    // Pattern: "Sector (subname): Route NAME: description (date / person)"
+    const match = line.match(/^(.+?):\s*Route\s+(.+?):\s*(.+?)(?:\s*\((.+?)\))?$/i);
+    if (!match) continue;
+
+    const [, sector, name, action, datePerson] = match;
+
+    let date = '';
+    let person = '';
+    if (datePerson) {
+      const parts = datePerson.split('/');
+      date = parts[0]?.trim() || '';
+      person = parts.slice(1).join('/').trim();
+    }
+
+    const type = classifyAction(action);
+    const year = extractYear(date);
+
+    routes.push({
+      sector: cleanSector(sector),
+      name: name.trim(),
+      action: action.trim(),
+      date,
+      person,
+      year,
+      type,
+      raw: line
+    });
+  }
+  return routes;
+}
+
+function classifyAction(action) {
+  const a = action.toLowerCase();
+  if (a.includes('fully rebolted') || a.includes('full rebolt') || a.includes('rebolted') && !a.includes('partial')) {
+    if (a.includes('partial')) return 'partial';
+    return 'full';
+  }
+  if (a.includes('partial')) return 'partial';
+  if (a.includes('anchor') || a.includes('lower-off') || a.includes('lower off') || a.includes('biner')) return 'anchor';
+  return 'other';
+}
+
+function extractYear(dateStr) {
+  const m = dateStr.match(/20\d\d/);
+  return m ? m[0] : '';
+}
+
+function cleanSector(sector) {
+  // Remove parenthetical sub-names and clean up
+  return sector.replace(/\s*\([^)]+\)\s*$/, '').trim();
+}
+
+// ── FETCH & SYNC ─────────────────────────────────────────────────
+async function syncData() {
+  const btn = document.getElementById('syncBtn');
+  const label = document.getElementById('syncLabel');
+  btn.classList.add('syncing');
+  label.textContent = 'SYNCING…';
+
+  try {
+    // Fetch from climbkalymnos.com maintenance log (CORS-friendly approach via a proxy or direct)
+    // We try fetching the page and parsing it
+    const routes = await fetchReboltData();
+    if (routes.length === 0) throw new Error('No routes parsed');
+
+    saveData(routes);
+    allRoutes = routes;
+    render();
+    updateSyncStatus();
+    toast('✓ Synced ' + routes.length + ' routes', 'success');
+  } catch (err) {
+    toast('Sync failed: ' + err.message, 'error');
+    console.error(err);
+  } finally {
+    btn.classList.remove('syncing');
+    label.textContent = 'SYNC';
+  }
+}
+
+async function fetchReboltData() {
+  // Try the climbkalymnos.com rebolt log via a CORS proxy
+  const urls = [
+    'https://api.allorigins.win/get?url=' + encodeURIComponent('https://climbkalymnos.com/'),
+    'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/')
+  ];
+
+  let html = '';
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) continue;
+      const data = await res.json().catch(() => null);
+      html = data?.contents || await res.text();
+      if (html.length > 1000) break;
+    } catch { continue; }
+  }
+
+  if (!html) throw new Error('Could not reach source. Check your WiFi connection.');
+
+  // Extract the rebolt log text from the HTML
+  const text = extractTextFromHTML(html);
+  const routes = parseReboltText(text);
+
+  // Also try the dedicated rebolt log page
+  let extraRoutes = [];
+  try {
+    const res2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://reboltkalymnos.org/kalymnos'), { signal: AbortSignal.timeout(10000) });
+    if (res2.ok) {
+      const data2 = await res2.json().catch(() => null);
+      const html2 = data2?.contents || '';
+      if (html2) extraRoutes = parseReboltText(extractTextFromHTML(html2));
+    }
+  } catch {}
+
+  // Merge, deduplicate by sector+name
+  const seen = new Set(routes.map(r => r.sector + '|' + r.name));
+  for (const r of extraRoutes) {
+    const key = r.sector + '|' + r.name;
+    if (!seen.has(key)) { routes.push(r); seen.add(key); }
+  }
+
+  return routes;
+}
+
+function extractTextFromHTML(html) {
+  // Strip tags, decode entities, return meaningful lines
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#8217;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 5)
+    .join('\n');
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function render() {
+  const content = document.getElementById('content');
+  const statsBar = document.getElementById('statsBar');
+
+  if (!allRoutes.length) {
+    statsBar.style.display = 'none';
+    content.innerHTML = `<div class="state-panel">
+      <div class="state-icon">🧗</div>
+      <div class="state-title">Ready for Kalymnos?</div>
+      <div class="state-body">Connect to WiFi and tap SYNC to download the full rebolt database. Then go climb — no data needed on the island.</div>
+      <button class="primary-btn" onclick="syncData()">SYNC NOW</button>
+    </div>`;
+    return;
+  }
+
+  // Filter routes
+  let filtered = allRoutes.filter(r => {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'full') return r.type === 'full';
+    if (currentFilter === 'partial') return r.type === 'partial';
+    if (currentFilter === 'anchor') return r.type === 'anchor';
+    if (currentFilter.startsWith('20')) return r.year === currentFilter;
+    return true;
+  });
+
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      r.sector.toLowerCase().includes(q) ||
+      r.action.toLowerCase().includes(q) ||
+      r.person.toLowerCase().includes(q)
+    );
+  }
+
+  // Update stats
+  statsBar.style.display = 'flex';
+  document.getElementById('statRoutes').textContent = filtered.length;
+  const sectors = new Set(filtered.map(r => r.sector));
+  document.getElementById('statSectors').textContent = sectors.size;
+  document.getElementById('statFull').textContent = filtered.filter(r => r.type === 'full').length;
+
+  if (!filtered.length) {
+    content.innerHTML = `<div class="no-results">No routes match your search</div>`;
+    return;
+  }
+
+  // Group by sector
+  const grouped = {};
+  for (const r of filtered) {
+    if (!grouped[r.sector]) grouped[r.sector] = [];
+    grouped[r.sector].push(r);
+  }
+
+  const sectorNames = Object.keys(grouped).sort();
+  const q = currentSearch.toLowerCase();
+
+  let html = '';
+  for (const sector of sectorNames) {
+    const routes = grouped[sector];
+    const sectorDisplay = currentSearch ? highlight(sector, q) : sector;
+    html += `
+      <div class="sector-group open">
+        <div class="sector-header" onclick="toggleSector(this.parentElement)">
+          <div class="sector-name">${sectorDisplay}</div>
+          <div class="sector-meta">
+            <span class="sector-count">${routes.length}</span>
+            <span class="chevron">▼</span>
+          </div>
+        </div>
+        <div class="route-list">
+          ${routes.map(r => routeCard(r, q)).join('')}
+        </div>
+      </div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function routeCard(r, q) {
+  const name = q ? highlight(r.name, q) : r.name;
+  const action = q ? highlight(r.action, q) : r.action;
+  const person = q ? highlight(r.person, q) : r.person;
+
+  const typeLabels = { full: 'FULL REBOLT', partial: 'PARTIAL', anchor: 'ANCHOR', other: 'MAINTAINED' };
+  const typeClass = r.type;
+
+  return `<div class="route-card">
+    <div class="route-name">${name}</div>
+    <div class="route-action">${action}</div>
+    ${r.person ? `<div class="route-person">by ${person}</div>` : ''}
+    <div class="route-badge">
+      ${r.year ? `<div class="badge-year">${r.year}</div>` : ''}
+      <div class="badge-type ${typeClass}">${typeLabels[r.type] || 'OTHER'}</div>
+    </div>
+  </div>`;
+}
+
+function highlight(str, q) {
+  if (!q || !str) return str;
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return str.replace(re, '<mark>$1</mark>');
+}
+
+// ── INTERACTIONS ─────────────────────────────────────────────────
+function toggleSector(el) {
+  el.classList.toggle('open');
+}
+
+function setFilter(f, chip) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  render();
+}
+
+function onSearch(val) {
+  currentSearch = val;
+  document.getElementById('searchClear').classList.toggle('visible', val.length > 0);
+  render();
+}
+
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  input.value = '';
+  onSearch('');
+  input.focus();
+}
+
+function updateSyncStatus() {
+  const el = document.getElementById('syncStatus');
+  const d = getSyncDate();
+  if (!d) {
+    el.textContent = 'No data yet — tap SYNC on WiFi to download';
+    el.className = 'sync-status';
+    return;
+  }
+  const now = new Date();
+  const daysDiff = Math.floor((now - d) / 86400000);
+  const dateStr = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  if (daysDiff < 7) {
+    el.textContent = `✓ Synced ${dateStr} — data is fresh`;
+    el.className = 'sync-status fresh';
+  } else {
+    el.textContent = `⚠ Last synced ${dateStr} — sync again for latest`;
+    el.className = 'sync-status stale';
+  }
+}
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────
+(function init() {
+  const saved = loadData();
+  if (saved && saved.length) {
+    allRoutes = saved;
+    render();
+    updateSyncStatus();
+  }
+
+  // Register service worker for offline caching
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
