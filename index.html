@@ -573,39 +573,44 @@ async function syncData() {
 async function fetchReboltData(onProgress) {
   const urls = [
     { name: 'AllOrigins', url: 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://climbkalymnos.com/') },
-    { name: 'CorsProxy.io', url: 'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/') }
+    { name: 'CorsProxy.io', url: 'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/') },
+    { name: 'Standard Proxy', url: 'https://proxy.cors.sh/https://climbkalymnos.com/' } // Third fallback
   ];
 
   let html = '';
-  let lastError = '';
+  let lastError = 'No response from any proxy.';
 
   for (const item of urls) {
     try {
       if (onProgress) onProgress(`Trying ${item.name}...`);
       
-      const res = await fetch(item.url, { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(item.url, { 
+        signal: AbortSignal.timeout(15000),
+        headers: { 'x-cors-gratis': 'true' } // Required for some proxies
+      });
       
       if (!res.ok) {
-        lastError = `${item.name} returned status ${res.status}`;
+        lastError = `${item.name} failed (Status ${res.status})`;
         continue;
       }
       
       const data = await res.json().catch(() => null);
-      html = data?.contents || (typeof data === 'string' ? data : '');
+      // Ensure we extract the content regardless of proxy format
+      html = data?.contents || data?.result || (typeof data === 'string' ? data : '');
       
-      if (html && html.length > 1000) {
-        if (onProgress) onProgress('Data received, parsing...');
-        break;
-      } else {
-        lastError = `${item.name} returned empty content.`;
+      if (html && html.length > 500) {
+        if (onProgress) onProgress('Data received! Parsing...');
+        break; 
       }
     } catch (e) { 
-      lastError = `${item.name} connection error: ${e.message}`;
-      continue; 
+      lastError = `${item.name}: ${e.message}`;
+      console.warn(lastError);
     }
   }
 
-  if (!html) throw new Error(lastError || 'All proxies failed. Check connection.');
+  if (!html || html.length < 500) {
+    throw new Error(lastError);
+  }
 
   const text = extractTextFromHTML(html);
   const routes = parseReboltText(text);
