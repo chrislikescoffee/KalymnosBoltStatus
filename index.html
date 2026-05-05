@@ -7,399 +7,87 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Rebolt Kaly">
   <meta name="theme-color" content="#0a0f0a">
-  <meta name="mobile-web-app-capable" content="yes">
   <title>Rebolt Kalymnos</title>
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0f0a;
-      --surface: #111811;
-      --surface2: #182018;
-      --border: #2a3d2a;
-      --accent: #7eff6a;
-      --accent2: #ff9f1c;
-      --accent3: #4ecdc4;
-      --text: #e8ede8;
-      --text-dim: #7a9a7a;
-      --text-muted: #4a6a4a;
-      --danger: #ff4d4d;
-      --warning: #ff9f1c;
-      --good: #7eff6a;
+      --bg:#0a0f0a; --surface:#111811; --surface2:#182018; --border:#2a3d2a;
+      --accent:#7eff6a; --accent2:#ff9f1c; --accent3:#4ecdc4;
+      --text:#e8ede8; --text-dim:#7a9a7a; --text-muted:#4a6a4a;
+      --danger:#ff4d4d; --good:#7eff6a;
     }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; min-height:100dvh; overflow-x:hidden; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    header { position:sticky; top:0; z-index:100; background:rgba(10,15,10,0.96); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:12px 16px; }
+    .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .logo { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:22px; letter-spacing:1px; line-height:1; }
+    .logo span { color:var(--accent); }
+    .sync-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); font-family:'Space Mono',monospace; font-size:11px; padding:6px 12px; cursor:pointer; border-radius:4px; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
+    .sync-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .sync-btn.busy { opacity:0.5; pointer-events:none; }
+    .sync-btn.busy .si { animation:spin 1s linear infinite; }
+    .si { display:inline-block; font-size:14px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      min-height: 100dvh;
-      overflow-x: hidden;
-    }
+    .search-wrap { position:relative; }
+    .search-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'Space Mono',monospace; font-size:13px; padding:9px 36px 9px 12px; border-radius:4px; outline:none; transition:border-color 0.2s; }
+    .search-input:focus { border-color:var(--accent); }
+    .search-input::placeholder { color:var(--text-muted); }
+    .clr { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; display:none; }
+    .clr.v { display:block; }
 
-    /* ── HEADER ── */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(10, 15, 10, 0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 16px;
-    }
+    .filters { display:flex; gap:8px; padding:10px 16px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); }
+    .filters::-webkit-scrollbar { display:none; }
+    .chip { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:13px; letter-spacing:0.5px; padding:5px 12px; border-radius:20px; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+    .chip.on { background:var(--accent); border-color:var(--accent); color:var(--bg); }
 
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
+    .bar { display:flex; align-items:stretch; border-bottom:1px solid var(--border); background:var(--surface); }
+    .stat { padding:8px 14px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:2px; }
+    .sn { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; color:var(--accent); line-height:1; }
+    .sl { font-size:9px; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; }
+    .age { flex:1; padding:8px 12px; font-size:10px; color:var(--text-muted); display:flex; align-items:center; justify-content:flex-end; text-align:right; line-height:1.4; }
+    .age.fresh { color:var(--good); }
+    .age.stale { color:var(--accent2); }
 
-    .logo {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 800;
-      font-size: 22px;
-      letter-spacing: 1px;
-      line-height: 1;
-    }
+    /* sync notice - shown when opened locally */
+    .sync-notice { display:none; padding:10px 16px; background:#ff9f1c11; border-bottom:1px solid #ff9f1c33; font-size:11px; color:var(--accent2); line-height:1.6; }
+    .sync-notice a { color:var(--accent3); }
+    .sync-notice.show { display:block; }
 
-    .logo span { color: var(--accent); }
+    .content { padding:0 0 80px; }
+    .sg { border-bottom:1px solid var(--border); }
+    .sh { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; cursor:pointer; background:var(--surface); user-select:none; transition:background 0.15s; }
+    .sh:hover { background:var(--surface2); }
+    .sn2 { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; letter-spacing:1px; text-transform:uppercase; color:var(--accent3); }
+    .sm { display:flex; align-items:center; gap:8px; }
+    .sc { font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--text-muted); }
+    .ch { color:var(--text-muted); font-size:11px; transition:transform 0.2s; }
+    .sg.open .ch { transform:rotate(180deg); }
+    .rl { display:none; }
+    .sg.open .rl { display:block; }
 
-    .sync-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      padding: 6px 12px;
-      cursor: pointer;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
+    .rc { padding:11px 16px; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr auto; gap:3px 12px; align-items:start; transition:background 0.1s; }
+    .rc:hover { background:var(--surface); }
+    .rn { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:16px; letter-spacing:0.5px; color:var(--text); }
+    .ra { font-size:11px; color:var(--text-dim); line-height:1.4; }
+    .rp { font-size:10px; color:var(--text-muted); }
+    .rb { grid-row:1/4; align-self:center; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+    .by { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; color:var(--accent2); }
+    .bt { font-size:9px; letter-spacing:0.5px; text-transform:uppercase; padding:2px 6px; border-radius:3px; font-family:'Barlow Condensed',sans-serif; font-weight:700; }
+    .bt.full    { background:#7eff6a22; color:var(--good);    border:1px solid #7eff6a44; }
+    .bt.partial { background:#ff9f1c22; color:var(--accent2); border:1px solid #ff9f1c44; }
+    .bt.anchor  { background:#4ecdc422; color:var(--accent3); border:1px solid #4ecdc444; }
+    .bt.other   { background:#ffffff11; color:var(--text-dim);border:1px solid #ffffff22; }
 
-    .sync-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .sync-btn.syncing { opacity: 0.6; pointer-events: none; }
-
-    .sync-icon { font-size: 14px; display: inline-block; }
-    .sync-btn.syncing .sync-icon { animation: spin 1s linear infinite; }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── SEARCH ── */
-    .search-wrap {
-      position: relative;
-    }
-
-    .search-input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      padding: 9px 36px 9px 12px;
-      border-radius: 4px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .search-input:focus { border-color: var(--accent); }
-    .search-input::placeholder { color: var(--text-muted); }
-
-    .search-clear {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 2px;
-      display: none;
-    }
-
-    .search-clear.visible { display: block; }
-
-    /* ── FILTERS ── */
-    .filters {
-      display: flex;
-      gap: 8px;
-      padding: 10px 16px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .filters::-webkit-scrollbar { display: none; }
-
-    .filter-chip {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-      padding: 5px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s;
-    }
-
-    .filter-chip.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
-
-    /* ── STATS BAR ── */
-    .stats-bar {
-      display: flex;
-      gap: 16px;
-      padding: 8px 16px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .stat {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .stat-num {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 20px;
-      color: var(--accent);
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 9px;
-      color: var(--text-muted);
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    /* ── SECTOR GROUPS ── */
-    .content {
-      padding: 0 0 80px;
-    }
-
-    .sector-group {
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sector-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px;
-      cursor: pointer;
-      background: var(--surface);
-      user-select: none;
-      transition: background 0.15s;
-    }
-
-    .sector-header:hover { background: var(--surface2); }
-
-    .sector-name {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--accent3);
-    }
-
-    .sector-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .sector-count {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .chevron {
-      color: var(--text-muted);
-      font-size: 12px;
-      transition: transform 0.2s;
-    }
-
-    .sector-group.open .chevron { transform: rotate(180deg); }
-
-    .route-list {
-      display: none;
-    }
-
-    .sector-group.open .route-list { display: block; }
-
-    /* ── ROUTE CARDS ── */
-    .route-card {
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 4px 12px;
-      align-items: start;
-      transition: background 0.1s;
-    }
-
-    .route-card:hover { background: var(--surface); }
-
-    .route-name {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 600;
-      font-size: 16px;
-      letter-spacing: 0.5px;
-      color: var(--text);
-      grid-column: 1;
-    }
-
-    .route-action {
-      font-size: 11px;
-      color: var(--text-dim);
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    .route-person {
-      font-size: 10px;
-      color: var(--text-muted);
-      grid-column: 1;
-      grid-row: 3;
-    }
-
-    .route-badge {
-      grid-column: 2;
-      grid-row: 1 / 4;
-      align-self: center;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
-
-    .badge-year {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--accent2);
-    }
-
-    .badge-type {
-      font-size: 9px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-    }
-
-    .badge-type.full    { background: #7eff6a22; color: var(--good); border: 1px solid #7eff6a44; }
-    .badge-type.partial { background: #ff9f1c22; color: var(--warning); border: 1px solid #ff9f1c44; }
-    .badge-type.anchor  { background: #4ecdc422; color: var(--accent3); border: 1px solid #4ecdc444; }
-    .badge-type.other   { background: #ffffff11; color: var(--text-dim); border: 1px solid #ffffff22; }
-
-    /* ── EMPTY / OFFLINE STATES ── */
-    .state-panel {
-      text-align: center;
-      padding: 60px 24px;
-    }
-
-    .state-icon { font-size: 48px; margin-bottom: 16px; }
-
-    .state-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 22px;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
-    .state-body {
-      font-size: 12px;
-      color: var(--text-dim);
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    .primary-btn {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: 1px;
-      padding: 10px 24px;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-
-    /* ── SYNC STATUS ── */
-    .sync-status {
-      font-size: 10px;
-      color: var(--text-muted);
-      padding: 6px 16px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sync-status.fresh { color: var(--good); }
-    .sync-status.stale { color: var(--warning); }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 12px;
-      padding: 10px 18px;
-      border-radius: 6px;
-      z-index: 999;
-      transition: transform 0.3s;
-      white-space: nowrap;
-      max-width: 90vw;
-    }
-
-    .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.success { border-color: var(--accent); color: var(--accent); }
-    .toast.error { border-color: var(--danger); color: var(--danger); }
-
-    /* ── NO RESULTS ── */
-    .no-results {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-      font-size: 12px;
-    }
-
-    /* ── HIGHLIGHT ── */
-    mark {
-      background: #7eff6a33;
-      color: var(--accent);
-      border-radius: 2px;
-    }
+    .empty { text-align:center; padding:40px 20px; color:var(--text-muted); font-size:12px; }
+    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:12px; padding:10px 18px; border-radius:6px; z-index:999; transition:transform 0.3s; white-space:nowrap; max-width:90vw; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.ok  { border-color:var(--accent); color:var(--accent); }
+    .toast.err { border-color:var(--danger); color:var(--danger); }
+    mark { background:#7eff6a33; color:var(--accent); border-radius:2px; }
   </style>
 </head>
 <body>
@@ -408,406 +96,215 @@
   <div class="header-top">
     <div class="logo">REBOLT <span>KALY</span></div>
     <button class="sync-btn" id="syncBtn" onclick="syncData()">
-      <span class="sync-icon">⟳</span>
-      <span id="syncLabel">SYNC</span>
+      <span class="si">⟳</span>
+      <span id="syncLabel">REFRESH</span>
     </button>
   </div>
   <div class="search-wrap">
-    <input class="search-input" id="searchInput" type="search" placeholder="Search route or sector…" oninput="onSearch(this.value)" autocomplete="off" spellcheck="false">
-    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    <input class="search-input" id="searchInput" type="search"
+      placeholder="Route name, sector, or bolter…"
+      oninput="onSearch(this.value)" autocomplete="off" spellcheck="false">
+    <button class="clr" id="clr" onclick="clearSearch()">✕</button>
   </div>
 </header>
 
-<div class="filters" id="filterBar">
-  <div class="filter-chip active" data-filter="all" onclick="setFilter('all', this)">ALL</div>
-  <div class="filter-chip" data-filter="full" onclick="setFilter('full', this)">FULLY REBOLTED</div>
-  <div class="filter-chip" data-filter="partial" onclick="setFilter('partial', this)">PARTIAL</div>
-  <div class="filter-chip" data-filter="anchor" onclick="setFilter('anchor', this)">ANCHOR ONLY</div>
-  <div class="filter-chip" data-filter="2025" onclick="setFilter('2025', this)">2025</div>
-  <div class="filter-chip" data-filter="2024" onclick="setFilter('2024', this)">2024</div>
-  <div class="filter-chip" data-filter="2023" onclick="setFilter('2023', this)">2023</div>
+<div class="filters">
+  <div class="chip on"  onclick="setFilter('all',this)">ALL</div>
+  <div class="chip" onclick="setFilter('full',this)">FULLY REBOLTED</div>
+  <div class="chip" onclick="setFilter('partial',this)">PARTIAL</div>
+  <div class="chip" onclick="setFilter('anchor',this)">ANCHOR ONLY</div>
+  <div class="chip" onclick="setFilter('2024',this)">2024</div>
+  <div class="chip" onclick="setFilter('2023',this)">2023</div>
+  <div class="chip" onclick="setFilter('2022',this)">2022</div>
+  <div class="chip" onclick="setFilter('2016',this)">2015/16</div>
 </div>
 
-<div class="sync-status" id="syncStatus">No data yet — tap SYNC on WiFi to download</div>
-
-<div class="stats-bar" id="statsBar" style="display:none">
-  <div class="stat">
-    <div class="stat-num" id="statRoutes">0</div>
-    <div class="stat-label">Routes</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="statSectors">0</div>
-    <div class="stat-label">Sectors</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="statFull">0</div>
-    <div class="stat-label">Full Rebolt</div>
-  </div>
+<div class="bar">
+  <div class="stat"><div class="sn" id="sR">0</div><div class="sl">Shown</div></div>
+  <div class="stat"><div class="sn" id="sS">0</div><div class="sl">Sectors</div></div>
+  <div class="stat"><div class="sn" id="sF">0</div><div class="sl">Rebolted</div></div>
+  <div class="age" id="age"></div>
 </div>
 
-<div class="content" id="content">
-  <div class="state-panel">
-    <div class="state-icon">🧗</div>
-    <div class="state-title">Ready for Kalymnos?</div>
-    <div class="state-body">
-      Connect to WiFi, tap SYNC to download<br>
-      the full rebolt database. Then go climb —<br>
-      no data needed on the island.
-    </div>
-    <button class="primary-btn" onclick="syncData()">SYNC NOW</button>
-  </div>
+<div class="sync-notice" id="syncNotice">
+  ⚠ REFRESH only works when hosted online (CORS restriction).<br>
+  Drag the folder to <a href="https://app.netlify.com/drop" target="_blank">netlify.com/drop</a> for a free URL — then REFRESH works everywhere including your phone.
 </div>
 
+<div class="content" id="content"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ── DATA MANAGEMENT ──────────────────────────────────────────────
-const STORAGE_KEY = 'rebolt_data_v2';
-const SYNC_DATE_KEY = 'rebolt_sync_date';
+const BUILTIN_DATE = 'May 2026';
+const RKEY = 'rk_routes_v4';
+const SKEY = 'rk_sync_v4';
 
-let allRoutes = [];
-let currentFilter = 'all';
-let currentSearch = '';
+const BUILTIN = [{"sector":"Kasteli","name":"DAMOKLES","action":"Two loose blocks removed","date":"Oct 2024","person":"Andrey Skripnichenko","year":"2024","type":"other"},{"sector":"Noufaro","name":"EISZEIT","action":"Biner added to anchor","date":"Oct 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"anchor"},{"sector":"Gamos","name":"CLOSE ENCOUNTER","action":"Biner added to anchor","date":"Oct 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"anchor"},{"sector":"Gamos","name":"RUBY RUBY RUBY","action":"Biner added to anchor","date":"Oct 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"anchor"},{"sector":"Trois Îlots","name":"PAR 4","action":"Installed the final bolt, which was missing","date":"Oct 17, 2024","person":"Andrey Skripnichenko","year":"2024","type":"other"},{"sector":"Symplegades","name":"FACATELENDOS","action":"Installed the first bolt, which had broken off","date":"Oct 17, 2024","person":"Andrey Skripnichenko","year":"2024","type":"other"},{"sector":"Griffig","name":"ZELLWEGER","action":"New anchor installed (broken ring)","date":"Oct 15, 2024","person":"Niels Abegglen, Pesche Wüthrich","year":"2024","type":"anchor"},{"sector":"Cave","name":"ZIZANIE","action":"Replaced two old bolts on anchor and two on the crux","date":"Oct 15, 2024","person":"Andrey Skripnichenko","year":"2024","type":"anchor"},{"sector":"Gamos","name":"WILLOW","action":"Biner added to anchor","date":"Sep 2024","person":"Hannes Webhofer","year":"2024","type":"anchor"},{"sector":"The Beach","name":"SUITE","action":"Biner added to anchor","date":"Sep 2024","person":"Andrey Skripnichenko","year":"2024","type":"anchor"},{"sector":"Arginonta","name":"TE POSSINO","action":"Cleaned some loose blocks; the rest is unremovable","date":"Aug 31, 2024","person":"Andrey Skripnichenko","year":"2024","type":"other"},{"sector":"Symplegades","name":"JASON","action":"Rebolted","date":"Aug 26, 2024","person":"Andrey Skripnichenko","year":"2024","type":"full"},{"sector":"Arginonta Valley","name":"TRICKY TRICKY MANA MOU","action":"Two new biners added to anchor","date":"Aug 20, 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"anchor"},{"sector":"Noufaro","name":"AROMA","action":"Removed loose rock marked with X, cut a big old stud","date":"Aug 18, 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"other"},{"sector":"Noufaro","name":"ERICSTOTLE","action":"Replaced old/rusty bolts, added two more bolts, cut off old studs","date":"Aug 18, 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"other"},{"sector":"Gerakios","name":"OPEN BOOK","action":"Biner added to anchor","date":"Aug 12, 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"anchor"},{"sector":"Arginonta Valley","name":"PATOKORFA","action":"Replaced two very worn biners at the anchor","date":"Aug 11, 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"anchor"},{"sector":"Arginonta Valley","name":"LA PAZ","action":"Replaced missing bolt (it had been placed on very soft white rock, which unfortunately had caused it to come off the wall). Missing bolt was replaced by two new bolts on good quality rock.","date":"Aug 11, 2024","person":"Aris Theodoropoulos, Katie Roussos","year":"2024","type":"other"},{"sector":"Noufaro","name":"DUCK DANCE","action":"Biner added to anchor","date":"Aug 1, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Arginonta Valley","name":"ALERIA","action":"Tightened loose nut","date":"July 29, 2024","person":"Andrey Scripnichenko","year":"2024","type":"other"},{"sector":"Arginonta Valley","name":"ALANI","action":"Changed direction of fixed biners to extend life","date":"July 29, 2024","person":"Andrey Scripnichenko","year":"2024","type":"anchor"},{"sector":"Odyssey","name":"ARGONAVIS","action":"New biner at anchor","date":"July 27, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Afternoon","name":"TSOPANAKOS EXT","action":"New anchor","date":"July 24, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Afternoon","name":"LADY IN BLACK","action":"New anchor","date":"July 24, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Afternoon","name":"SWISS BABY","action":"New anchor","date":"July 24, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Afternoon","name":"MORTEAU RICO","action":"New anchor","date":"July 24, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Je T'Aime","name":"RÄT PÄCK","action":"Checked/glued loose rock near anchor","date":"July 2024","person":"Niels Abegglen, Fred Leconte","year":"2024","type":"anchor"},{"sector":"Poets","name":"BLONDE, JAMES BLONDE","action":"Rebolted, new anchor added","date":"July 14, 2024","person":"Andrey Scripnichenko","year":"2024","type":"full"},{"sector":"Poets","name":"BLONDE","action":"New anchor","date":"July 14, 2024","person":"Andrey Scripnichenko","year":"2024","type":"anchor"},{"sector":"Afternoon","name":"HARRY ZONA EXT","action":"New anchor","date":"June 23, 2024","person":"Niels Abegglen","year":"2024","type":"anchor"},{"sector":"Grande Grotta","name":"TUFANTASTIC","action":"New anchor","date":"May 2024","person":"Andrey Scripnichenko, Brad Lawson","year":"2024","type":"anchor"},{"sector":"North Cape","name":"ROSSO DI SERA","action":"Two loose flakes removed","date":"May 13, 2024","person":"Andrey Scripnichenko","year":"2024","type":"other"},{"sector":"Arginonta Valley","name":"RHYTHM OF THE RAIN","action":"Replaced worn biners at anchor","date":"May 04, 2024","person":"Nick Hayes","year":"2024","type":"anchor"},{"sector":"Arginonta Valley","name":"AD-HOC","action":"Replaced worn biners at anchor","date":"May 01, 2024","person":"Fred Leconte","year":"2024","type":"anchor"},{"sector":"Arginonta Valley","name":"LE BLUE DU CIEL","action":"Replaced worn biners at anchor","date":"May 01, 2024","person":"Fred Leconte","year":"2024","type":"anchor"},{"sector":"Sikati Cave","name":"POR UNA SOCIEDAD CON MUJERES SATISFECHAS","action":"Rebolted, and some permadraws and new anchor to the left added","date":"May 2024","person":"Pesche Wüthrich","year":"2024","type":"full"},{"sector":"Griffig","name":"MILLIONENBACH","action":"New anchor","date":"April/May 2024","person":"George Kopalides, Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Griffig","name":"MELCON","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"CLIMBERS VILLAGE","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"OROR DOES THE BABY FREEZE","action":"New anchor","date":"April/May 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Griffig","name":"THE DENTIST TERROR","action":"New anchor","date":"April/May 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Griffig","name":"PESTALOZZI","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"LOU + ZOE","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"THE WILD EIGHT RF","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"GREMLIN HANNAH","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"ALPINE-EXPERIENCE","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"GRIFFIG GOES TO KALYMNOS","action":"New anchor","date":"April/May 2024","person":"George Kopalides","year":"2024","type":"anchor"},{"sector":"Griffig","name":"CHLAUSEZÄUERLI","action":"New anchor","date":"April/May 2024","person":"Rory Gregory","year":"2024","type":"anchor"},{"sector":"Griffig","name":"CHUCHICHÄSCHTLITRIPP","action":"New anchor","date":"April/May 2024","person":"Rory Gregory","year":"2024","type":"anchor"},{"sector":"Griffig","name":"IT'S A JANINE THING","action":"New anchor","date":"April/May 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Sikati Cave","name":"HAPPY BOYFRIEND","action":"New anchor","date":"April 2024","person":"Dave Lane, Sergi Medina","year":"2024","type":"anchor"},{"sector":"Sikati Cave","name":"DROPZONE","action":"New anchor","date":"April 2024","person":"Dave Lane, Sergi Medina","year":"2024","type":"anchor"},{"sector":"Sikati Cave","name":"ARMATA SIKATI","action":"New anchor","date":"April 2024","person":"Dave Lane, Sergi Medina","year":"2024","type":"anchor"},{"sector":"Sikati Cave","name":"LITTLE BULBOS","action":"New anchor","date":"April 2024","person":"Dave Lane, Sergi Medina","year":"2024","type":"anchor"},{"sector":"Sikati Cave","name":"KALYROCK.COM","action":"Fully rebolted","date":"April 2024","person":"Dave Lane","year":"2024","type":"full"},{"sector":"Sikati Cave","name":"LES ARTS DU VIDE","action":"Fully rebolted","date":"April 2024","person":"Axel Legrand","year":"2024","type":"full"},{"sector":"Sikati Cave","name":"MORT AUX CHÈVRES EXT","action":"Partially rebolted, some permadraws and intermediate anchor at 45m added","date":"April 2024","person":"Axel Coiral","year":"2024","type":"partial"},{"sector":"Sikati Cave","name":"LES DENTS DE LA MER","action":"Fully rebolted, permadraws added","date":"April 2024","person":"Axel Coiral","year":"2024","type":"full"},{"sector":"Arhi","name":"NE PAS TOUCHER À MA BITE","action":"Replaced/rebolted all rusted bolts after the shared start with EROS.","date":"April 24, 2024","person":"Niels Abegglen","year":"2024","type":"full"},{"sector":"Noufaro","name":"C'EST LA VIE","action":"Biner added to anchor.","date":"April 20, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Griffig","name":"ROBIN HOOD","action":"Biner added to anchor.","date":"April 19, 2024","person":"Aris Theodoropoulos","year":"2024","type":"anchor"},{"sector":"Kasteli","name":"MATHILDE","action":"Replaced biners at anchor.","date":"April 11, 2024","person":"Andrey Scripnichenko","year":"2024","type":"anchor"},{"sector":"Kasteli","name":"BRICOUNET","action":"Replaced biners at anchor.","date":"April 11, 2024","person":"Andrey Scripnichenko","year":"2024","type":"anchor"},{"sector":"Poets","name":"ISABEL","action":"Replaced anchor and biner; replaced worn bolts and corrected bolting.","date":"April 10, 2024","person":"Andrey Scripnichenko","year":"2024","type":"anchor"},{"sector":"Olympic Wall","name":"GALASIA PETRA","action":"Rebolted Pitch 3; bolted Pitch 4; cleaned the whole route.","date":"March 2024","person":"Max Berger, Much Mayr","year":"2024","type":"other"},{"sector":"Poets","name":"PETRANTA","action":"One moving bolt replaced; new bolt placed a bit higher.","date":"March 30, 2024","person":"Andrey Scripnichenko","year":"2024","type":"other"},{"sector":"Afternoon","name":"ENERGY 4 MAY 2000","action":"Carabiner added to anchor.","date":"December 2023","person":"Andrey Scripnichenko","year":"2023","type":"anchor"},{"sector":"Iliada Main","name":"PARIS","action":"Carabiner added to anchor.","date":"December 2023","person":"Andrey Scripnichenko","year":"2023","type":"anchor"},{"sector":"Arginonta Skyline","name":"KRAFTREAKTOR","action":"Two loose flakes removed.","date":"December 2023","person":"Andrey Scripnichenko","year":"2023","type":"other"},{"sector":"Symplegades","name":"AQUARELLA","action":"Cleaned; biner added to anchor.","date":"Dec 20, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"BOLTING ADDICTION","action":"Replaced anchor and spinning bolt.","date":"Nov 20, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Sikati Cave","name":"SUPER LOLITA","action":"Fully rebolted","date":"November 2023","person":"Max Berger","year":"2023","type":"full"},{"sector":"Sikati Cave","name":"LOLITA","action":"Fully rebolted","date":"November 2023","person":"Max Berger","year":"2023","type":"full"},{"sector":"Sikati Cave","name":"LES PIRATES DE SIKATI","action":"Fully rebolted","date":"November 2023","person":"Max Berger","year":"2023","type":"full"},{"sector":"Sikati Cave","name":"MORGAN","action":"Fully rebolted","date":"November 2023","person":"Max Berger","year":"2023","type":"full"},{"sector":"Sikati","name":"MORT AUX CHÈVRES","action":"Fully rebolted and anchor replaced.","date":"Oct 30, 2023","person":"George Kopalides","year":"2023","type":"full"},{"sector":"Gerakios","name":"PITA-RITA","action":"New anchor.","date":"Oct 25, 2023","person":"Andrey Scripnichenko","year":"2023","type":"anchor"},{"sector":"Gerakios","name":"DRILL","action":"New anchor.","date":"Oct 25, 2023","person":"Andrey Scripnichenko","year":"2023","type":"anchor"},{"sector":"Sea Breeze","name":"ROCK CLEANER","action":"Added new lower-off (cut the old anchor)","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"QUINTET","action":"New carabiner at lower-off.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"QUARTET","action":"New carabiner at lower-off.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"TRIO","action":"Added new anchor with carabiner.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"SIRTAKI","action":"Cleaned loose blocks, replaced old lower-off with new anchor with carabiner.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"BLUES","action":"New carabiner at lower-off.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Summertime","name":"LEUTCHRUM","action":"New carabiner at lower-off.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Summertime","name":"COLD FEET","action":"Biner added to anchor.","date":"September 2023","person":"Fred Leconte","year":"2023","type":"anchor"},{"sector":"Summertime","name":"METRALOS","action":"Biner added to anchor.","date":"Aug 15, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Secret Garden","name":"MAYUMBA","action":"Biners replaced at anchor.","date":"Aug 08, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Griffig","name":"SUCHSPIEL","action":"Biner added to anchor.","date":"July 17, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Secret Garden","name":"PANTREMENOS","action":"Biners replaced at anchor.","date":"July 15, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Secret Garden","name":"ACHINOS","action":"Biners replaced at anchor.","date":"July 15, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Secret Garden","name":"ROOFIANOS","action":"Biners replaced at anchor.","date":"July 15, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"DUCK DANCE","action":"Biner added to anchor.","date":"July 12, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"AMAZONA","action":"Biner added to anchor.","date":"July 12, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"MANTIS","action":"Biner added to anchor.","date":"July 12, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"SPICE","action":"Biner added to anchor.","date":"July 12, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"ERICSTOTLE","action":"Biner added to anchor.","date":"July 12, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"GARBULLI","action":"Biner added to anchor.","date":"July 10, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"GECKO'S TEAM","action":"Biner added to anchor.","date":"July 10, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"HO PERSO LA BUSSOLA","action":"Biner added to anchor.","date":"July 10, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"NAOSHI","action":"Biner added to anchor.","date":"July 10, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Noufaro","name":"BUONA LA PRIMA","action":"Biner added to anchor.","date":"July 10, 2023","person":"Aris Theodoropoulos","year":"2023","type":"anchor"},{"sector":"Vathy","name":"LIVING STONE","action":"Cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Aghios Mamas","name":"BURGER & BEER","action":"Cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Afternoon","name":"CLAIRE","action":"Rebolted.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"full"},{"sector":"Spartacus","name":"ALEXIS ZORBAS","action":"Rebolted; replaced lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"full"},{"sector":"Iliada","name":"POPI","action":"Replaced old hanger; cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Dolphin Bay","name":"SIGA-SIGA","action":"Replaced lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Arginonta","name":"KLAUSIS","action":"Replaced carabiner at lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Arginonta","name":"FIRE WALL","action":"Replaced five bolts.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Cave","name":"TITINE","action":"Cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Palace","name":"GUINEA PIG","action":"Replaced old hanger.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Palace","name":"PORCUPINE","action":"Replaced old hanger.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Symplegades","name":"CLIMBERS' NEST","action":"Replaced carabiner at lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Trois Îlots","name":"POUCE TWALDA","action":"Cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Trois Îlots","name":"ALLEZ GROS","action":"Cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Gerakios","name":"READER","action":"Cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"other"},{"sector":"Poets","name":"GANIMED","action":"Rebolted route, replaced lower-off, cleaned loose rock.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"full"},{"sector":"Poets","name":"KALIMERA","action":"Replaced one old hanger.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Kalydna","name":"MITRA","action":"Rebolted lower part of route.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"partial"},{"sector":"Kalydna","name":"BIGBOO","action":"Replaced old/worn lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Kalydna","name":"MISS LATEX","action":"Two rings installed at lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Kalydna","name":"MAMI AU GRIGRI","action":"Two rings installed at lower-off.","date":"Winter 2022/Spring 2023","person":"Andrey Skripnichenko","year":"2023","type":"anchor"},{"sector":"Poets","name":"AMYTHOS","action":"Biner added at anchor.","date":"Dec 12, 2022","person":"Aris Theodoropoulos","year":"2022","type":"anchor"},{"sector":"Poets","name":"SEVASTI","action":"Rebolted/replaced rusted bolts.","date":"Dec 12, 2022","person":"Dimitris Glezos, Aris Theodoropoulos","year":"2022","type":"full"},{"sector":"Poets","name":"YPAKOE","action":"New anchor and carabiner.","date":"Dec 12, 2022","person":"Aris Theodoropoulos","year":"2022","type":"anchor"},{"sector":"Poets","name":"FENCE QUEST","action":"Rebolted/replaced rusted bolts, added new anchor.","date":"Nov 11, 2022","person":"Aris Theodoropoulos","year":"2022","type":"full"},{"sector":"Afternoon","name":"TSOPANAKOS","action":"Loose flake cleaned; rebolted; new anchor.","date":"Oct 30, 2022","person":"Aris Theodoropoulos","year":"2022","type":"full"},{"sector":"Kalydna","name":"AURORA","action":"All old rusty bolts removed and replaced with new bolts with much closer spacing. 3 well-balanced pitches created.","date":"May 2022","person":"Rory Gregory, Paul Bolger","year":"2022","type":"other"},{"sector":"Secret Garden","name":"POMPONIDOUX","action":"Replaced two worn bolts","date":"April 29, 2022","person":"George Kopalides, Aris Theodoropoulos","year":"2022","type":"other"},{"sector":"Secret Garden","name":"ROUTE 66","action":"Replaced worn bolt","date":"April 29, 2022","person":"George Kopalides, Aris Theodoropoulos","year":"2022","type":"other"},{"sector":"Arginonta Valley","name":"KAMAKI","action":"Replaced worn carabiner on lower-off","date":"April 25, 2022","person":"Aris Theodoropoulos, Katie Roussos","year":"2022","type":"anchor"},{"sector":"Arginonta Valley","name":"KAVOURMAS","action":"Replaced worn carabiner on lower-off","date":"April 25, 2022","person":"Aris Theodoropoulos, Katie Roussos","year":"2022","type":"anchor"},{"sector":"Arginonta Valley","name":"SYTHAS","action":"Replaced worn carabiner on lower-off","date":"April 25, 2022","person":"Aris Theodoropoulos, Katie Roussos","year":"2022","type":"anchor"},{"sector":"Poets Main","name":"HOMERIC VERSES","action":"Replaced lower-off and three bolts","date":"April 19, 2022","person":"Claude Idoux, Aris Theodoropoulos","year":"2022","type":"anchor"},{"sector":"Noufaro","name":"BOLERO","action":"New lower-off; moved up by 2m to avoid rope friction and damage","date":"July 27, 2021","person":"Aris Theodoropoulos","year":"2021","type":"anchor"},{"sector":"Noufaro","name":"HARRY BOLTER","action":"1 bolt at the crux was replaced by 2 bolts to avoid a possible ground fall","date":"July 27, 2021","person":"Aris Theodoropoulos","year":"2021","type":"other"},{"sector":"Pezonda","name":"MISIRLOU","action":"3 new bolts added","date":"July 25, 2021","person":"Niels Abegglen, Aris Theodoropoulos","year":"2021","type":"other"},{"sector":"Odyssey","name":"ATENA","action":"Added new lower-off and moved it 2m further up; replaced 2 bolts","date":"July 20, 2021","person":"Aris Theodoropoulos","year":"2021","type":"anchor"},{"sector":"Heroes","name":"AMELIA","action":"Moved the lower-off further up; the lower-off is now shared with route Phidias","date":"July 16, 2021","person":"Aris Theodoropoulos","year":"2021","type":"anchor"},{"sector":"Heroes","name":"PHIDIAS","action":"Replaced a moving bolt","date":"July 16, 2021","person":"Aris Theodoropoulos","year":"2021","type":"other"},{"sector":"The Beach","name":"KARPOUZI","action":"All new bolts (many 12mm) and lower-off","date":"Nov 25, 2020","person":"Hannes Webhofer","year":"2020","type":"anchor"},{"sector":"The Beach","name":"TOMBOY","action":"All new bolts (many 12mm) and lower-off","date":"Nov 25, 2020","person":"Hannes Webhofer","year":"2020","type":"anchor"},{"sector":"Arginonta Fire Wall","name":"BIRDS WITHOUT ARMS EXT","action":"New lower-off","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Arginonta Fire Wall","name":"BIRDS WITHOUT ARMS","action":"New lower-off","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Arginonta Fire Wall","name":"LEMMY FOR PRESIDENT","action":"New lower-off","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Arginonta Infrared Wall","name":"KATERGO","action":"New lower-off","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Panorama","name":"D.T.F.","action":"New lower-off carabiner","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Lambda","name":"GENERAL","action":"New lower-off carabiner","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Summertime","name":"THYMIAN","action":"New lower-off carabiner","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Summertime","name":"ASTERIAS","action":"New lower-off","date":"Sep/Oct 2020","person":"Joe Fratianni","year":"2020","type":"anchor"},{"sector":"Trois Îlots","name":"L.A.O.T.C.O.","action":"New lower-off; rusty bolts replaced","date":"Sep 6, 2020","person":"Claude Idoux","year":"2020","type":"anchor"},{"sector":"Trois Îlots","name":"QEEN COUINE","action":"New lower-off","date":"Sep 6, 2020","person":"Claude Idoux","year":"2020","type":"anchor"},{"sector":"Trois Îlots","name":"BISES TO KATE","action":"New lower-off","date":"Sep 6, 2020","person":"Claude Idoux","year":"2020","type":"anchor"},{"sector":"Secret Garden","name":"ABYSSOS","action":"Rebolted","date":"Aug 22, 2020","person":"Fred Leconte","year":"2020","type":"full"},{"sector":"Secret Garden","name":"THE SILENCE OF THE ABYSS","action":"Rebolted","date":"Aug 20, 2020","person":"Fred Leconte","year":"2020","type":"full"},{"sector":"Secret Garden","name":"ADOLFLAHAUT","action":"Lower-off carabiner added","date":"Aug 14, 2020","person":"Kostas Grafanakis","year":"2020","type":"anchor"},{"sector":"Styx","name":"ZEIGENSTALL","action":"Rebolted, cleaned, new chain","date":"Feb 15, 2020","person":"Mike Reed","year":"2020","type":"full"},{"sector":"Cave","name":"SASCHA ON THE ROAD","action":"Rebolted","date":"Feb 2020","person":"Panormitis Platsis","year":"2020","type":"full"},{"sector":"Cave","name":"SAROMAN","action":"Rebolted","date":"Feb 2020","person":"Panormitis Platsis","year":"2020","type":"full"},{"sector":"Secret Garden","name":"PRINCESSE MARINE","action":"New lower-off","date":"Nov 14, 2019","person":"Kostas Grafanakis","year":"2019","type":"anchor"},{"sector":"Arginonta Katharina Wall","name":"MISSING LINK","action":"New lower-off","date":"Oct 16, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Katharina Wall","name":"SHARK BITE","action":"New lower-off","date":"Oct 16, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Katharina Wall","name":"VICTORIA","action":"New lower-off","date":"Oct 16, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Katharina Wall","name":"KATHARINA","action":"New lower-off","date":"Oct 16, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Katharina Wall","name":"CLEAN","action":"New lower-off","date":"Oct 16, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Star Wall","name":"OXI KREMIDI","action":"Lower-off carabiner added","date":"Aug 10, 2019","person":"Spiros Anatolianos, Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Star Wall","name":"C3-PO","action":"Lower-off carabiner added","date":"Aug 10, 2019","person":"Katie Roussos, Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Poets","name":"IRIS","action":"Bolt added after the ledge","date":"Aug 7, 2019","person":"Tania Matsuka, Aris Theodoropoulos","year":"2019","type":"other"},{"sector":"Poets","name":"ÇA BRUINE SEC","action":"Two bolts added","date":"Aug 7, 2019","person":"Tania Matsuka, Aris Theodoropoulos","year":"2019","type":"other"},{"sector":"Poets","name":"SKALA DREAM","action":"Corrected bolt placement of 2nd, 3rd, and 4th bolt.","date":"Aug 7, 2019","person":"Tania Matsuka, Aris Theodoropoulos","year":"2019","type":"other"},{"sector":"Poets","name":"AMYTHOS","action":"Lower-off carabiner added","date":"Aug 1, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Afternoon","name":"ARATUS","action":"Lower-off replaced; additional bolts placed","date":"Jul 25, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Star Wall","name":"PADAWAN","action":"Lower-off carabiner added","date":"Jul 24, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Star Wall","name":"THE END","action":"Lower-off carabiner added","date":"Jul 24, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Infrared Wall","name":"NO SLEEP 'TIL HAMMERSMITH","action":"Loose part of big block cleaned","date":"Jul 22, 2019","person":"Aris Theodoropoulos, Panormitis Platsis","year":"2019","type":"other"},{"sector":"Afternoon","name":"KALO TAXIDI","action":"Carabiner added to lower-off","date":"Jul 21, 2019","person":"Aris Theodoropoulos, Katie Roussos","year":"2019","type":"anchor"},{"sector":"Spartan Wall","name":"HOLLYWOOD WAX","action":"Additional bolts placed; loose rock/vegetation cleaned","date":"Jul 21, 2019","person":"Aris Theodoropoulos, Katie Roussos","year":"2019","type":"other"},{"sector":"Spartan Wall","name":"CHOCOLATE GIRL LOLIPOP","action":"Separate lower-off installed","date":"Jul 21, 2019","person":"Aris Theodoropoulos, Katie Roussos","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"BANCROCHE","action":"Carabiners at lower-off reversed to prolong lifespan","date":"Jul 19, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"L'ENGEANCE","action":"Carabiners at lower-off reversed to prolong lifespan","date":"Jul 19, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"GASTECLOU","action":"Carabiners at lower-off reversed to prolong lifespan","date":"Jul 19, 2019","person":"Aris Theodoropoulos","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"ANNA-MARIA","action":"Added 2nd carabiner to lower-off","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"CAP ARVITHIS","action":"Lower-off carabiners replaced","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"BÖRHOK","action":"Lower-off carabiners replaced","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"WILD SEX","action":"Lower-off carabiners replaced","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"FREESTYLE","action":"Lower-off carabiners replaced","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"KOSMAS","action":"Lower-off carabiners replaced","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta","name":"PORNOKINI","action":"Lower-off carabiners replaced","date":"Jul 17, 2019","person":"Aris Theodoropoulos, Claude Idoux","year":"2019","type":"anchor"},{"sector":"Odyssey","name":"ON THE VERGE","action":"Two loose blocks removed; route rebolted","date":"Jul 15, 2019","person":"Aris Theodoropoulos","year":"2019","type":"full"},{"sector":"Odyssey","name":"TELEMACO","action":"Old bolts (1997) replaced","date":"Jul 13, 2019","person":"Aris Theodoropoulos, Katie Roussos","year":"2019","type":"other"},{"sector":"Arginonta Valley","name":"GASTECLOU","action":"Lower-off carabiners replaced","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"IDOINE","action":"Lower-off carabiners replaced","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"LE BLEU DU CIEL","action":"Lower-off carabiners replaced","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"ALANI","action":"Lower-off carabiners replaced","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"HIPPOCRATES","action":"Lower-off carabiners replaced","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"SKAFANDRO","action":"Lower-off carabiners reversed to prolong lifespan","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Arginonta Valley","name":"AHTARMAS","action":"Lower-off carabiners reversed to prolong lifespan","date":"Jul 7, 2019","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Sea Breeze","name":"NEWCOMER","action":"Lower-off replaced, route rebolted","date":"Winter 2018/19","person":"Claude Idoux, Dimitrios Halikos","year":"2019","type":"full"},{"sector":"Sea Breeze","name":"SLALOM","action":"Lower-off replaced, route rebolted","date":"Winter 2018/19","person":"Claude Idoux","year":"2019","type":"full"},{"sector":"Sea Breeze","name":"CLIMBING THE 2ND BEST","action":"Lower-off replaced, route rebolted","date":"Winter 2018/19","person":"Claude Idoux","year":"2019","type":"full"},{"sector":"Sea Breeze","name":"RAND PROBLEM","action":"Very dangerous loose block removed, route rebolted, lower-off replaced","date":"Winter 2018/19","person":"Claude Idoux, Dimitrios Halikos","year":"2019","type":"full"},{"sector":"Sea Breeze","name":"FALAKRO","action":"Loose block with bolt on it removed, route rebolted","date":"Winter 2018/19","person":"Claude Idoux, Aris Theodoropoulos","year":"2019","type":"full"},{"sector":"Sea Breeze","name":"SWEDISH BLONDE","action":"Lower-off replaced","date":"Winter 2018/19","person":"Claude Idoux","year":"2019","type":"anchor"},{"sector":"Sea Breeze","name":"2F@","action":"Lower-off replaced, route rebolted","date":"Winter 2018/19","person":"Claude Idoux, Aris Theodoropoulos","year":"2019","type":"full"},{"sector":"Arginonta","name":"LYSISTRATI","action":"Missing hangers replaced","date":"Nov 15, 2018","person":"Rory Gregory, Paul Bolger","year":"2018","type":"anchor"},{"sector":"Palace","name":"KARTOFFELACREP","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"LAMPEN LADEN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"LEDA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"SAIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"IFAISTOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"TOTTA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"SILVIA (MELIS)","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"ROOM 13","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"THE ROOF IS ON FIRE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"BALLROOM","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"MIA'S PLACE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"KING SUITE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Palace","name":"BALCONY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"EWA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"DODO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"ROCK SHRIMPS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"SHARP THINGS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"STRANGE TREE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"RED SPOT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"BEAVER'S BOLTS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"FARON","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Belgian Chocolates","name":"JOLLI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ZIWI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ERCOLE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"CENTAURO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"PEGASO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"TESEO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"BLACK SNAKE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ARGONAUTI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ARGONAUTI EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"SCACCO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"PARES","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"DEIMOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"PHOBOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"SMALL FISH","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"CARONTE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ARIANNA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"OPTASSIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ROCOS DI CANTALOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ROCOS DI CANTALOS EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ORGASME MINERAL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"ORGASME MINERAL EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"KALYMNOSTROBE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"KALYMNOSTROBE EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"TAKOPOULOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"GIORGIO DE LA JUNGLE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"GIORGIO DE LA JUNGLE EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"MAMMIFERE VIBES","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Arhi","name":"MAMMIFERE VIBES EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"MELOMAKARONAS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"PLASTIC SURGERY DISASTER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"ART IN THE AIR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"VROMIKOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"ÂOULDERHOELLE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"HAZOULI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"HAZOULI EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"ME PONAI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"ROCKOUT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"LOUBIS' ANGELS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"BRAVE A NEW WORLD","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Sea Breeze","name":"DIVINE COMÉDIE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"SALTED JOINT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"TOO FAT FOR TUFAS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"ROUFOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"LAVRAKI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"SMINERI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"KAVOURAS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"KALYMNIAN LIGHTNING","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"BARBOUNI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"BLOOMING","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"IRIS PRODUCTION","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"FLIPPER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"PALAMIDA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"KOUTSOUMOURA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Dolphin Bay","name":"TSIPOURA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"TO PROTO MORO MOU","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"SEAL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"HANTCH","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"REIZE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"POLAR STAR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"NORDIC WALKING","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"North Cape","name":"NORTH LIGHT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"MARCI MARC","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"NADIR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"AMPHORA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"SIRENE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"INTI RAYMI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"SARDONIQUE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"INTI WATANA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"BOOM BOOM","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"LOS REVOLUCIONARIOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"GORA GUTA GUTARAK","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"TUPAC AMARU","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"PINDARO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"LOS KUKOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"MORFEAS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"MORFEAS PLUS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"LAS GALINAS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"KULTURISTIKA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"ARUGLIOPOULOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"NAFSIKA NAFSIKA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"MON AMUR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"ISLAND HIGHWAY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Odyssey","name":"IL GIGANTE E LA BAMBINA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"LA BITE NE FAIT PAS LE MOINE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"LE BITE NE FAIT PAS LE MOINE EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"KALYNETTE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"SAPHIR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"SEXTOYS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"TELENDOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"KALYTY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"YAMAS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"HOGO FOGO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"HELLAS RODEO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"LIMONADOVY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"DEFENCE D'Y VOIR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"EROTIK MARKET","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"IL MOVIMIENTO SEXI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Olympic Wall","name":"TOUTOUILLE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"ORGANIZER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"MEGA BURGER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"STRANGE LITTLE GIRL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"INSOMNIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"DIMARHOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"TIGRYONAK","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"DULCES SUENOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"POUPAKIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"YO YO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"HIBISCUS MARKET PART 1","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"OJOS DE BRUJO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"HIBISCUS MARKET","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"TITANTROPE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"GUEST DJ","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"THE BEGINNING AT THE END","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"HARLEM NIGHTS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"SPARTAKIADA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"SPARTAKIADA EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"KURVA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"KURVA EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Spartan Wall","name":"PROBLEME MINEUR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Afternoon","name":"BYE BYE DOC","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Afternoon","name":"JANA'S KITCHEN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Afternoon","name":"ASKLIPIOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Afternoon","name":"PANAKIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Afternoon","name":"MY LONG HOLIDAY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"MONAHIKI ELIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"TAZ","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"KALYPIGE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"PRIAPOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"SUPER PRIAPOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"TRELA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"ELEFANTENHIMMEL PART 1","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"ELEFANTENHIMMEL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"AEGIALIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"ZAWINUL SYNDICATE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"AFRODITE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"DNA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Grande Grotta","name":"IVI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"RASTAPOPOULOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"AEGEAN SEA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"CIGARILLO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"WHERE IS MY MIND?","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"PANSELINOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"CARPE DIEM","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"CARPE NOCTEM","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"COMMANDANTE MARCOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"JOGGEL + TOGGEL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"TUEFELI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"CHNOSI FAMILY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"BOOMERANG","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"MECKI MESSER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"STEINPILZ","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"NEPTUN KL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"NEPTUN KL EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"MICHIS HOHLENFLEBER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"BYE BYE FELIX","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"REPTIL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"MIND BOGGLE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"GWUNDERNASSE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"RUSSEL PARADIES","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"KOPAKABANA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"KOPAKABANA EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"MANOU TCHAO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"THE CALL OF THE KTULU","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"JOGGEL + TOGGEL EXT 1","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"JOGGEL + TOGGEL EXT 2","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"SUPER CARPE DIEM","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Panorama","name":"PAPACOSTOPOULOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"SIDERWINDER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"SUNRISE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"KAFE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"ANAPHYLACTIC SHOCK","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"LACTIC SHOCK","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"POKER FACE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"ARTHUR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"DELETIME","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"THE SILENT WAY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"DREAM LINE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"DREAM LINE EXT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"IVORY TOWER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"ULTIMO BUCCO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Ivory Tower","name":"FUGA DEL GUY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets (Iannis)","name":"SEVASTI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets (Iannis)","name":"THEMELINA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets (Iannis)","name":"SUPER THEMELINA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets (Iannis)","name":"RACOMELO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets (Iannis)","name":"TUFA KING PUMPED","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"POET'S CORNER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"IONE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"IBRIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"ANACREONTE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"ALCMAN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"LICIMNIO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"ALCEO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"PINDARO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"SAPFO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"O' BROTHERS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"MUSTASS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"SAXONIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"OMERO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"STYX","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"DAMOCLES","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"KAVAFIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Poets","name":"MINOS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"POPI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MARIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"IASON","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"NIKI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"KIRIAKI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"EVOULA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"EVDOKIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"SEVASTI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MEMORIES OF DOROTHY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MO AN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"ANASTASIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"EVANGELIA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MENESIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"DIONESIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"INGLETON","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"WHITE ROSE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"YORKSHIRE PUDDING","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"HOLLENFIEBER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"SWORDFISH","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"SOLEFISH","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"XYMOX","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MAGMA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MORE THAN MODE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"THE MAGIC CIRCLE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"KYPRIOS ANGEL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"HELVETIX","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"SALLY'S BOAT TRIP","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"PRIMEROV","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"CAPTAIN JACK","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"PANTELIS SEA JUMP","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"CUOBO","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"APHRODITE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"IROX","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Irox (Telendos)","name":"MARMORNEI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"MAFALDA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"ISSILI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"PLAKA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"TEQUISCHIAPAN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"OTR","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"ZORBA'S RESTAURANT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"PADELIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"ABONEROS EL CHILLI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"Y VIVA PANCHO VILLA!","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"QUEEN POTHA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"AEGENA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"IL Y AVAIT DE LAURE DANS MA VIE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"AMORES PERROS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"ZOIDIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"SCOOTER FUN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Pescatore (Telendos)","name":"MILTIADIS","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"STAFEL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"LAMBDA","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"LAMBDA CAPITAL","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"MEIGGEREN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"PROGRESSIVE ROCK PART 1","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"PROGRESSIVE ROCK PART 2","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"PROGRESSIVE ROCK PART 3","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"DOM","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"FIIRHELZER","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"ARBZUG","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"GERWITSCHT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"CHARDONNAY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"EL ALAMEIN","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"MARINELLI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"HOTEL SIMI BASEMENT","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"HOTEL SIMI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"SCHWJIESCHWANZERRECTED","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"FLAUSCHI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"ROLFI","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Lambda (Telendos)","name":"HERMETJE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Telendos South Face","name":"WILD COUNTRY","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"},{"sector":"Telendos South Face","name":"WINGS FOR LIFE","action":"Fully rebolted (2015/2016 Municipal Project)","date":"2015/2016","person":"George Kopalides, Claude Idoux, Alexandros Istatkof, Dimitris Titopoulos","year":"2016","type":"full"}];
 
-function saveData(routes) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
-  localStorage.setItem(SYNC_DATE_KEY, new Date().toISOString());
+let all = [], filt = 'all', q = '';
+
+(function init() {
+  const s = tryLoad();
+  all = s || BUILTIN;
+  setAgeDisplay(s ? localStorage.getItem(SKEY) : null);
+  render();
+  // Show notice if running from file://
+  if (location.protocol === 'file:') {
+    document.getElementById('syncNotice').classList.add('show');
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+
+function tryLoad() {
+  try { const r=localStorage.getItem(RKEY); return r?JSON.parse(r):null; } catch{return null;}
 }
 
-function loadData() {
+async function syncData() {
+  const btn = document.getElementById('syncBtn');
+  const lbl = document.getElementById('syncLabel');
+  btn.classList.add('busy'); lbl.textContent = 'SYNCING…';
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+    const res = await fetch('https://climbkalymnos.com/', {signal:AbortSignal.timeout(20000)});
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const html = await res.text();
+    const routes = parseHTML(html);
+    if (routes.length < 30) throw new Error('Only '+routes.length+' routes found');
+    // Merge with builtin 2016 data (keep 2016 entries, update with fresh maintenance)
+    const merged = mergeRoutes(BUILTIN.filter(r=>r.year==='2016'), routes);
+    localStorage.setItem(RKEY, JSON.stringify(merged));
+    const now = new Date().toISOString();
+    localStorage.setItem(SKEY, now);
+    all = merged;
+    render();
+    setAgeDisplay(now);
+    toast('✓ Refreshed — '+merged.length+' routes total', 'ok');
+  } catch(e) {
+    toast('Refresh failed: '+e.message, 'err');
+    console.error(e);
+  }
+  btn.classList.remove('busy'); lbl.textContent = 'REFRESH';
 }
 
-function getSyncDate() {
-  const d = localStorage.getItem(SYNC_DATE_KEY);
-  return d ? new Date(d) : null;
+function mergeRoutes(base, fresh) {
+  const seen = new Set(fresh.map(r=>r.sector.toLowerCase()+'|'+r.name.toLowerCase()));
+  const out = [...fresh];
+  for (const r of base) {
+    if (!seen.has(r.sector.toLowerCase()+'|'+r.name.toLowerCase())) out.push(r);
+  }
+  return out;
 }
 
-// ── PARSING ──────────────────────────────────────────────────────
-function parseReboltText(text) {
+function parseHTML(html) {
   const routes = [];
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-
-  for (const line of lines) {
-    const lowerLine = line.toLowerCase();
-    // Look for entries containing rebolt keywords
-    if (lowerLine.includes('rebolted') || lowerLine.includes('anchor') || lowerLine.includes('lower off') || lowerLine.includes('biner')) {
-      const parts = line.split(':').map(p => p.trim());
-      
-      if (parts.length >= 2) {
-        const sector = parts[0];
-        const routeInfo = parts[1];
-        const action = parts[2] || routeInfo;
-        
-        routes.push({
-          sector: cleanSector(sector),
-          name: routeInfo.replace(/Route\s+/i, '').split('(')[0].trim(),
-          action: action,
-          date: extractYear(line),
-          person: "",
-          year: extractYear(line),
-          type: classifyAction(action),
-          raw: line
-        });
-      }
-    }
+  html = html.replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'');
+  const re = /<li>([\s\S]*?)<\/li>/gi; let m;
+  while ((m=re.exec(html))!==null) {
+    const t = m[1].replace(/<em>/gi,'(').replace(/<\/em>/gi,')').replace(/<[^>]+>/g,'')
+      .replace(/&amp;/g,'&').replace(/&#8217;/g,"'").replace(/&nbsp;/g,' ')
+      .replace(/\s+/g,' ').trim();
+    const rm = t.match(/^(.+?):\s*Route\s+(.+?):\s*(.+?)\s*\(([^)]+)\)\s*\.?$/i);
+    if (!rm) continue;
+    const [,sec,name,action,dp] = rm;
+    const pts = dp.split('/');
+    routes.push({
+      sector: sec.replace(/\s*\([^)]+\)\s*$/,'').trim(),
+      name: name.trim(), action: action.trim(),
+      date: pts[0].trim(), person: pts.slice(1).join('/').trim(),
+      year: (pts[0].match(/20\d\d/)||[''])[0],
+      type: classify(action)
+    });
   }
   return routes;
 }
 
-function classifyAction(action) {
-  const a = action.toLowerCase();
-  if (a.includes('fully rebolted') || a.includes('full rebolt') || a.includes('rebolted') && !a.includes('partial')) {
-    if (a.includes('partial')) return 'partial';
-    return 'full';
-  }
-  if (a.includes('partial')) return 'partial';
-  if (a.includes('anchor') || a.includes('lower-off') || a.includes('lower off') || a.includes('biner')) return 'anchor';
+function classify(a) {
+  a = a.toLowerCase();
+  if (/fully rebolted/.test(a)) return 'full';
+  if (/partially rebolted|lower part/.test(a)) return 'partial';
+  if (/rebolted/.test(a)) return 'full';
+  if (/anchor|lower-off|lower off|biner|hanger|ring|chain/.test(a)) return 'anchor';
   return 'other';
 }
 
-function extractYear(dateStr) {
-  const m = dateStr.match(/20\d\d/);
-  return m ? m[0] : '';
-}
-
-function cleanSector(sector) {
-  return sector.replace(/\s*\([^)]+\)\s*$/, '').trim();
-}
-
-// ── FETCH & SYNC ─────────────────────────────────────────────────
-async function syncData() {
-  const btn = document.getElementById('syncBtn');
-  const label = document.getElementById('syncLabel');
-  const statusEl = document.getElementById('syncStatus');
-  
-  btn.classList.add('syncing');
-  label.textContent = 'SYNCING…';
-  statusEl.textContent = 'Connecting to proxies...';
-
-  try {
-    const routes = await fetchReboltData((msg) => {
-      statusEl.textContent = msg; // Update UI with current step
-    });
-    
-    if (routes.length === 0) throw new Error('Parsing failed: No valid route data found.');
-
-    saveData(routes);
-    allRoutes = routes;
-    render();
-    updateSyncStatus();
-    toast('✓ Synced ' + routes.length + ' routes', 'success');
-  } catch (err) {
-    statusEl.textContent = 'Error: ' + err.message;
-    statusEl.className = 'sync-status stale';
-    toast('Sync failed: ' + err.message, 'error');
-    console.error('Detailed Sync Error:', err);
-  } finally {
-    btn.classList.remove('syncing');
-    label.textContent = 'SYNC';
-  }
-}
-
-async function fetchReboltData(onProgress) {
-  const urls = [
-    { name: 'AllOrigins', url: 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://climbkalymnos.com/') },
-    { name: 'CorsProxy.io', url: 'https://corsproxy.io/?' + encodeURIComponent('https://climbkalymnos.com/') },
-    { name: 'Standard Proxy', url: 'https://proxy.cors.sh/https://climbkalymnos.com/' } // Third fallback
-  ];
-
-  let html = '';
-  let lastError = 'No response from any proxy.';
-
-  for (const item of urls) {
-    try {
-      if (onProgress) onProgress(`Trying ${item.name}...`);
-      
-      const res = await fetch(item.url, { 
-        method: 'GET',
-        mode: 'cors', 
-        headers: {
-          'x-cors-gratis': 'true' // Required for proxy.cors.sh to work for free
-        },
-        signal: AbortSignal.timeout(15000) 
-      });
-      
-      if (!res.ok) {
-        lastError = `${item.name} failed (Status ${res.status})`;
-        continue;
-      }
-      
-      const data = await res.json().catch(() => null);
-      // Ensure we extract the content regardless of proxy format
-      html = data?.contents || data?.result || (typeof data === 'string' ? data : '');
-      
-      if (html && html.length > 500) {
-        if (onProgress) onProgress('Data received! Parsing...');
-        break; 
-      }
-    } catch (e) { 
-      lastError = `${item.name}: ${e.message}`;
-      console.warn(lastError);
-    }
-  }
-
-  if (!html || html.length < 500) {
-    throw new Error(lastError);
-  }
-
-  const text = extractTextFromHTML(html);
-  const routes = parseReboltText(text);
-  return routes;
-}
-
-function extractTextFromHTML(html) {
-  return html
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<\/li>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&#8217;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\r/g, '')
-    .split('\n')
-    .map(l => l.trim())
-    .filter(l => l.length > 5)
-    .join('\n');
-}
-
-// ── RENDER ───────────────────────────────────────────────────────
 function render() {
-  const content = document.getElementById('content');
-  const statsBar = document.getElementById('statsBar');
-
-  if (!allRoutes.length) {
-    statsBar.style.display = 'none';
-    content.innerHTML = `<div class="state-panel">
-      <div class="state-icon">🧗</div>
-      <div class="state-title">Ready for Kalymnos?</div>
-      <div class="state-body">Connect to WiFi and tap SYNC to download the full rebolt database. Then go climb — no data needed on the island.</div>
-      <button class="primary-btn" onclick="syncData()">SYNC NOW</button>
-    </div>`;
-    return;
-  }
-
-  let filtered = allRoutes.filter(r => {
-    if (currentFilter === 'all') return true;
-    if (currentFilter === 'full') return r.type === 'full';
-    if (currentFilter === 'partial') return r.type === 'partial';
-    if (currentFilter === 'anchor') return r.type === 'anchor';
-    if (currentFilter.startsWith('20')) return r.year === currentFilter;
-    return true;
+  let rows = all.filter(r => {
+    if (filt==='all') return true;
+    if (/^\d{4}$/.test(filt)) return r.year===filt;
+    return r.type===filt;
   });
+  if (q) rows = rows.filter(r =>
+    r.name.toLowerCase().includes(q) || r.sector.toLowerCase().includes(q) ||
+    r.person.toLowerCase().includes(q) || r.action.toLowerCase().includes(q));
 
-  if (currentSearch) {
-    const q = currentSearch.toLowerCase();
-    filtered = filtered.filter(r =>
-      r.name.toLowerCase().includes(q) ||
-      r.sector.toLowerCase().includes(q) ||
-      r.action.toLowerCase().includes(q) ||
-      r.person.toLowerCase().includes(q)
-    );
-  }
+  document.getElementById('sR').textContent = rows.length;
+  document.getElementById('sS').textContent = new Set(rows.map(r=>r.sector)).size;
+  document.getElementById('sF').textContent = rows.filter(r=>r.type==='full').length;
 
-  statsBar.style.display = 'flex';
-  document.getElementById('statRoutes').textContent = filtered.length;
-  const sectors = new Set(filtered.map(r => r.sector));
-  document.getElementById('statSectors').textContent = sectors.size;
-  document.getElementById('statFull').textContent = filtered.filter(r => r.type === 'full').length;
+  const C = document.getElementById('content');
+  if (!rows.length) { C.innerHTML='<div class="empty">No routes match</div>'; return; }
 
-  if (!filtered.length) {
-    content.innerHTML = `<div class="no-results">No routes match your search</div>`;
-    return;
-  }
+  const grp = {};
+  for (const r of rows) (grp[r.sector]=grp[r.sector]||[]).push(r);
+  const tl = {full:'FULL REBOLT',partial:'PARTIAL',anchor:'ANCHOR',other:'MAINTAINED'};
 
-  const grouped = {};
-  for (const r of filtered) {
-    if (!grouped[r.sector]) grouped[r.sector] = [];
-    grouped[r.sector].push(r);
-  }
-
-  const sectorNames = Object.keys(grouped).sort();
-  const q = currentSearch.toLowerCase();
-
-  let html = '';
-  for (const sector of sectorNames) {
-    const routes = grouped[sector];
-    const sectorDisplay = currentSearch ? highlight(sector, q) : sector;
-    html += `
-      <div class="sector-group open">
-        <div class="sector-header" onclick="toggleSector(this.parentElement)">
-          <div class="sector-name">${sectorDisplay}</div>
-          <div class="sector-meta">
-            <span class="sector-count">${routes.length}</span>
-            <span class="chevron">▼</span>
+  C.innerHTML = Object.keys(grp).sort().map(sec => {
+    const rs = grp[sec];
+    return `<div class="sg open">
+      <div class="sh" onclick="this.parentElement.classList.toggle('open')">
+        <div class="sn2">${q?hl(sec):sec}</div>
+        <div class="sm"><span class="sc">${rs.length}</span><span class="ch">▼</span></div>
+      </div>
+      <div class="rl">${rs.map(r=>`
+        <div class="rc">
+          <div class="rn">${q?hl(r.name):r.name}</div>
+          <div class="ra">${q?hl(r.action):r.action}</div>
+          ${r.person?`<div class="rp">by ${q?hl(r.person):r.person}</div>`:''}
+          <div class="rb">
+            ${r.year?`<div class="by">${r.year}</div>`:''}
+            <div class="bt ${r.type}">${tl[r.type]||'OTHER'}</div>
           </div>
-        </div>
-        <div class="route-list">
-          ${routes.map(r => routeCard(r, q)).join('')}
-        </div>
-      </div>`;
-  }
-
-  content.innerHTML = html;
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('');
 }
 
-function routeCard(r, q) {
-  const name = q ? highlight(r.name, q) : r.name;
-  const action = q ? highlight(r.action, q) : r.action;
-  const person = q ? highlight(r.person, q) : r.person;
-
-  const typeLabels = { full: 'FULL REBOLT', partial: 'PARTIAL', anchor: 'ANCHOR', other: 'MAINTAINED' };
-  const typeClass = r.type;
-
-  return `<div class="route-card">
-    <div class="route-name">${name}</div>
-    <div class="route-action">${action}</div>
-    ${r.person ? `<div class="route-person">by ${person}</div>` : ''}
-    <div class="route-badge">
-      ${r.year ? `<div class="badge-year">${r.year}</div>` : ''}
-      <div class="badge-type ${typeClass}">${typeLabels[r.type] || 'OTHER'}</div>
-    </div>
-  </div>`;
-}
-
-function highlight(str, q) {
-  if (!q || !str) return str;
-  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-  return str.replace(re, '<mark>$1</mark>');
-}
-
-function toggleSector(el) {
-  el.classList.toggle('open');
+function hl(s) {
+  if(!s||!q) return s||'';
+  return s.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
 }
 
 function setFilter(f, chip) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
+  filt=f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on');
   render();
 }
 
-function onSearch(val) {
-  currentSearch = val;
-  document.getElementById('searchClear').classList.toggle('visible', val.length > 0);
+function onSearch(v) {
+  q=v.toLowerCase().trim();
+  document.getElementById('clr').classList.toggle('v',v.length>0);
   render();
 }
 
 function clearSearch() {
-  const input = document.getElementById('searchInput');
-  input.value = '';
-  onSearch('');
-  input.focus();
+  const i=document.getElementById('searchInput');
+  i.value=''; onSearch(''); i.focus();
 }
 
-function updateSyncStatus() {
-  const el = document.getElementById('syncStatus');
-  const d = getSyncDate();
-  if (!d) {
-    el.textContent = 'No data yet — tap SYNC on WiFi to download';
-    el.className = 'sync-status';
-    return;
-  }
-  const now = new Date();
-  const daysDiff = Math.floor((now - d) / 86400000);
-  const dateStr = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-
-  if (daysDiff < 7) {
-    el.textContent = `✓ Synced ${dateStr} — data is fresh`;
-    el.className = 'sync-status fresh';
-  } else {
-    el.textContent = `⚠ Last synced ${dateStr} — sync again for latest`;
-    el.className = 'sync-status stale';
-  }
+function setAgeDisplay(iso) {
+  const el=document.getElementById('age');
+  if (!iso) { el.textContent='Built-in · '+BUILTIN_DATE; el.className='age'; return; }
+  const d=new Date(iso), days=Math.floor((Date.now()-d)/86400000);
+  const ds=d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+  el.textContent = days<14 ? '✓ Updated '+ds : '⚠ '+ds;
+  el.className='age '+(days<14?'fresh':'stale');
 }
 
-function toast(msg, type = '') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show ' + type;
-  setTimeout(() => el.classList.remove('show'), 3000);
+function toast(msg,type) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+(type||'');
+  setTimeout(()=>el.classList.remove('show'),4000);
 }
-
-(function init() {
-  const saved = loadData();
-  if (saved && saved.length) {
-    allRoutes = saved;
-    render();
-    updateSyncStatus();
-  }
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
-})();
 </script>
 </body>
 </html>
