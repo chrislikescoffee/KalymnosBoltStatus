@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rebolt-kaly-v4';
+const CACHE_NAME = 'rebolt-kaly-v5'; // New version forces a refresh
 const SHELL = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -18,9 +18,10 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // BYPASS: If the request is NOT to your own github.io domain, ignore it completely
+  // BYPASS: If the request is NOT to your own github.io domain, ignore it completely.
+  // This prevents the "TypeError: Failed to fetch" error during syncing.
   if (url.origin !== self.location.origin) {
-    return; // This forces the browser to handle the request, not the worker
+    return; 
   }
 
   e.respondWith(
