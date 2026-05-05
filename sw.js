@@ -1,8 +1,10 @@
-// Service Worker — caches the app shell for full offline use
-const CACHE = 'rebolt-kaly-v1';
+const CACHE = 'rebolt-kaly-v2';
 const SHELL = [
   './',
   './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', e => {
@@ -19,17 +21,20 @@ self.addEventListener('activate', e => {
   );
 });
 
+// ── FIXED FETCH HANDLER ──────────────────────────────────────────
 self.addEventListener('fetch', e => {
-  // Network-first for Google Fonts and external resources (when online)
-  // Cache-first for the app shell
   const url = new URL(e.request.url);
 
+  // 1. BYPASS for external API calls (Syncing)
+  // Let these go directly to the network without SW interference
+  if (url.hostname.includes('allorigins') || url.hostname.includes('corsproxy') || url.hostname.includes('climbkalymnos')) {
+    return; // Do nothing, let the browser handle it naturally
+  }
+
+  // 2. Handle the App Shell (index.html, etc.)
   if (SHELL.some(s => url.pathname.endsWith(s.replace('./', ''))) || url.pathname === '/') {
     e.respondWith(
       caches.match(e.request).then(cached => cached || fetch(e.request))
     );
-  } else {
-    // Pass through everything else (API calls, fonts)
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
   }
 });
